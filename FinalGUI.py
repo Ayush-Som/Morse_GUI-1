@@ -2,7 +2,6 @@
 from tkinter import *
 from tkinter import messagebox
 import tkinter.font as style
-
 import RPi.GPIO as GPIO
 from gpiozero import LED
 from time import sleep
@@ -14,10 +13,11 @@ MAX_LIMIT = 12
 
 #Setting up the GUI Layout
 master = Tk()
-master.minsize(275, 150)
+master.geometry("240x90")
+master.resizable(0, 0)
 myFont = style.Font(family = "monospace", size=10)
 master.eval('tk::PlaceWindow . center')
-master.title("User Input GUI")
+master.title("User GUI")
 
 #A variable to store the input provided by the user
 var = StringVar()
@@ -35,13 +35,8 @@ MORSE_CODE_DICT = { 'A':'.-', 'B':'-...',
                     '1':'.----', '2':'..---', '3':'...--',
                     '4':'....-', '5':'.....', '6':'-....',
                     '7':'--...', '8':'---..', '9':'----.',
-                    '0':'-----', ', ':'--..--', '.':'.-.-.-',
-                    '?':'..--..', '/':'-..-.', '-':'-....-',
-                    '(':'-.--.', ')':'-.--.-'}
+                    '0':'-----'}
 
-#When the submit is pressed, output is shown at the output screen
-#Also restricts the submitted input to MAX_LIMIT characters
-#Uses the MORSE_CODE_DICT so as to convert, store and return the new converted morse code
 def blink(chars):
     led.off()
     i = 0
@@ -66,19 +61,12 @@ def submit():
     name = var.get().upper()
     if len(name) <= MAX_LIMIT and len(name) > 0:
         print(name)
-        #name = var.get().upper()
         arr = list(name)
         cipher = ''
         for letter in arr:
             if letter != ' ':
-                # Looks up the dictionary and adds the
-                # corresponding morse code
-                # along with a space to separate
-                # morse codes for different characters
                 cipher += MORSE_CODE_DICT[letter] + ' '
             else:
-                # 1 space indicates different characters
-                # and 2 indicates different words
                 cipher += ' '
         print(cipher)
         blink(cipher)
@@ -93,11 +81,10 @@ def close():
     master.destroy()
 
 #MAIN
-Label(master, text="FIRST NAME: ", font = myFont).grid(column=0, row=0)
-Entry(master, width = 18, textvariable=var).grid(column=1, row=0, sticky='nesw')
-Label(master, text=" ").grid(column=1, row=1)
-Button(master, text = "SUBMIT", command = submit, height=1, width = 13, bg = "bisque2", bd = 3).grid(column=1, row = 2, sticky='nesw')
-Button(master, command = close, text = "QUIT", width = 9, height = 1, bg = "red", bd = 3).grid(column=1, row=3)
+Label(master, text="INPUT ", font = myFont).grid(column=0, row=0, sticky=W, padx=5, pady=5)
+Entry(master, width = 20, textvariable=var).grid(column=1, row=0, sticky=W, padx=5, pady=5)
+Button(master, text = "SUBMIT", command = submit, width = 10, bg = "bisque2", bd = 3).grid(column=0, row=1, sticky=W, padx=5, pady=5)
+Button(master, command = close, text = "QUIT", width = 9, bg = "red", bd = 3).grid(column=1, row=1, sticky=E, padx=5, pady=5)
 master.protocol("WM_DELETE_MASTER", close)
 
 #Iterating the main instructions
