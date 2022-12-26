@@ -1,29 +1,23 @@
-#Importing libraries tkinter as a whole, messagebox from tkinter and the fonts for font styling
-from tkinter import *
-from tkinter import messagebox
-import tkinter.font as style
-import RPi.GPIO as GPIO
+# Importing Libraries required for code
+from tkinter import*
+import tkinter.font 
 from gpiozero import LED
-from time import sleep
+import RPi.GPIO
+RPi.GPIO.setmode(RPi.GPIO.BCM) 
+import time
 
-led = LED(15)
+## hardware
+Led = LED (14)
 
-#Limit of the input
 MAX_LIMIT = 12
 
-#Setting up the GUI Layout
-master = Tk()
-master.geometry("240x90")
-master.resizable(0, 0)
-myFont = style.Font(family = "monospace", size=10)
-master.eval('tk::PlaceWindow . center')
-master.title("User GUI")
+## GUI DEFINITIONS ##
+win = Tk()
+win.title("LED Toggler") # GUI title 
+myFont = tkinter.font. Font(family = 'Helvetica', size = 12, weight = "bold") # Defining Font 
 
-#A variable to store the input provided by the user
-var = StringVar()
-
-#For converting each letter to morse code
-MORSE_CODE_DICT = { 'A':'.-', 'B':'-...',
+# A List that stores morse symbol for each alphabet, number and many symbols
+translate_dict = { 'A':'.-', 'B':'-...',
                     'C':'-.-.', 'D':'-..', 'E':'.',
                     'F':'..-.', 'G':'--.', 'H':'....',
                     'I':'..', 'J':'.---', 'K':'-.-',
@@ -35,57 +29,65 @@ MORSE_CODE_DICT = { 'A':'.-', 'B':'-...',
                     '1':'.----', '2':'..---', '3':'...--',
                     '4':'....-', '5':'.....', '6':'-....',
                     '7':'--...', '8':'---..', '9':'----.',
-                    '0':'-----'}
+                    '0':'-----', ', ':'--..--', '.':'.-.-.-',
+                    '?':'..--..', '/':'-..-.', '-':'-....-',
+                    '(':'-.--.', ')':'-.--.-'}
 
-def blink(chars):
-    led.off()
-    i = 0
-    while len(chars) > i:
-        if chars[i] == '.':
-           led.on()
-           sleep(1)
-           led.off()
-           
-        elif chars[i] == '-':
-           led.on()
-           sleep(3)
-           led.off()
-           
-        elif chars[i] == ' ':
-           led.off()
-           sleep(2)
-        sleep(0.5)
-        i += 1
+#Defining variable of String type
+ledinput = str()
 
-def submit():
-    name = var.get().upper()
-    if len(name) <= MAX_LIMIT and len(name) > 0:
-        print(name)
-        arr = list(name)
-        cipher = ''
-        for letter in arr:
-            if letter != ' ':
-                cipher += MORSE_CODE_DICT[letter] + ' '
+### EVENT FUNCTIONS ###
+def dash(): # Blink Led correspoding to dash in Morse code
+    Led.on()
+    time.sleep(0.6)
+    Led.off()
+    time.sleep(0.3)
+def dot(): # Blink Led correspoding to dot in Morse code
+    Led.on()
+    time.sleep(0.2)
+    Led.off()
+    time.sleep(0.1)
+
+# Converts String input into Morse code and blinks Led accordingly   
+def Morse_code(ledinput): 
+    ledinput = code.get().upper()
+    if ledinput <= MAX_LIMIT and ledinput > 0:
+        ledinput = " ".join(translate_dict[c] for c in ledinput.upper())
+        print(ledinput)
+        for c in ledinput:
+            if c == ".":
+                dot()
+            elif c == "-":
+                dash()
+            elif c == "/" or c == " ":
+                time.sleep(0.5)
             else:
-                cipher += ' '
-        print(cipher)
-        blink(cipher)
-        
-    elif len(name) > MAX_LIMIT or len(name) == 0:
-        messagebox.showerror("Error", "Name cannot exceed " + str(MAX_LIMIT) + " characters or cannot be null")
-        var.set("")
+                print("Enter a valid Character")
+    else:
+        print("Error!", "Input cannot exceed " + str(MAX_LIMIT) + " characters or cannot be null")
+        ledinput.set("")
 
-#For enabling the QUIT button
+
+#Destroy the GUI and clean the code
 def close():
-    GPIO.cleanup()
-    master.destroy()
+    RPi.GPIO.cleanup()
+    win.destroy()
 
-#MAIN
-Label(master, text="INPUT ", font = myFont).grid(column=0, row=0, sticky=W, padx=5, pady=5)
-Entry(master, width = 20, textvariable=var).grid(column=1, row=0, sticky=W, padx=5, pady=5)
-Button(master, text = "SUBMIT", command = submit, width = 10, bg = "bisque2", bd = 3).grid(column=0, row=1, sticky=W, padx=5, pady=5)
-Button(master, command = close, text = "QUIT", width = 9, bg = "red", bd = 3).grid(column=1, row=1, sticky=E, padx=5, pady=5)
-master.protocol("WM_DELETE_MASTER", close)
+### WIDGETS ###
+#Button to call the funtion Morse_code to blink input
+ledButton = Button (win, text = 'Blink Name', font = myFont, command = lambda: Morse_code(ledinput), bg = 'aqua', height = 1)
+ledButton.grid (row=0, column=2)
 
-#Iterating the main instructions
-master.mainloop()
+# Entry widget to get input from the User
+code = Entry(win, font=myFont, width=15)
+code.grid(row=0, column=1)
+
+# Exit the GUI and cleans the code
+exitButton = Button (win, text = 'Exit', font = myFont, command = close, bg = 'aqua', height = 1, width = 6)
+exitButton.grid (row=2, column=1)
+
+# To destroy GUI on pressing the cross button in the corner 
+win.protocol("WM_DELETE_WINDOW", close) # exit cleanly
+
+win.mainloop() # Loop forever
+
